@@ -158,34 +158,34 @@ Describe 'Install-Module' {
             }
 
             It 'Should retrieve information about module by ID' {
-                $retrieved = Get-PsGetModuleInfo HelloWorld -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose
+                $retrieved = Get-ModuleInfo HelloWorld -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose
                 $retrieved | Should Not Be $null
                 $retrieved.Id | Should Be 'HelloWorld'
             }
 
             It 'Should retrieve information about module and wildcard' {
-                $retrieved = Get-PsGetModuleInfo Hello* -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose
+                $retrieved = Get-ModuleInfo Hello* -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose
                 $retrieved | Should HaveCountOf 1
             }
 
-            It 'Should support value pipelining to Get-PsGetModuleInfo' {
-                $retrieved = 'HelloWorld' | Get-PsGetModuleInfo -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose
+            It 'Should support value pipelining to Get-ModuleInfo' {
+                $retrieved = 'HelloWorld' | Get-ModuleInfo -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose
                 $retrieved.Id | Should Be 'HelloWorld'
             }
 
-            It 'Should support property pipelining to Get-PsGetModuleInfo' {
-                $retrieved = New-Object -TypeName PSObject -Property @{ ModuleName = 'HelloWorld' } | Get-PsGetModuleInfo -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose
+            It 'Should support property pipelining to Get-ModuleInfo' {
+                $retrieved = New-Object -TypeName PSObject -Property @{ ModuleName = 'HelloWorld' } | Get-ModuleInfo -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose
                 $retrieved.Id | Should Be 'HelloWorld'
             }
 
-            It 'Should output objects from Get-PsGetModuleInfo that have properties matching parameters of Install-Module' {
-                $retrieved = Get-PsGetModuleInfo -ModuleName HelloWorld -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose
+            It 'Should output objects from Get-ModuleInfo that have properties matching parameters of Install-Module' {
+                $retrieved = Get-ModuleInfo -ModuleName HelloWorld -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose
                 $retrieved.Id | Should Be 'HelloWorld'
                 $retrieved.ModuleUrl | Should Be 'https://github.com/psget/psget/raw/master/TestModules/HelloWorld.psm1'
             }
 
-            It 'Should support piping from Get-PsGetModuleInfo to Install-Module' {
-                Get-PsGetModuleInfo -ModuleName HelloWorld -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose |
+            It 'Should support piping from Get-ModuleInfo to Install-Module' {
+                Get-ModuleInfo -ModuleName HelloWorld -DirectoryUrl:"file://$here\TestModules\Directory.xml" -Verbose:$verbose |
                     Install-Module -Verbose:$verbose
                 'HelloWorld' | Should BeInstalled
                 Drop-Module -Module 'HelloWorld'
@@ -274,11 +274,11 @@ Describe 'Install-Module' {
                 # change the module so the hash is wrong
                 Set-Content -Path $userModulePath\HelloWorld\extrafile.txt -Value ExtraContent
 
-                Get-PSGetModuleHash -Path $here\TestModules\HelloWorldFolder
-                Get-PSGetModuleHash -Path $userModulePath\HelloWorld
+                Get-ModuleHash -Path $here\TestModules\HelloWorldFolder
+                Get-ModuleHash -Path $userModulePath\HelloWorld
 
                 Install-Module -ModuleName HelloWorld -ModuleUrl https://github.com/psget/psget/raw/master/TestModules/HelloWorldInChildFolder.zip -ModuleHash 722377BA6AE291B6109C7ECEBE5E2B0745B46A070238F7D05FC0DCA68F8BAD03 -Verbose:$verbose
-                if ((Get-PSGetModuleHash -Path $userModulePath\HelloWorld) -ne '722377BA6AE291B6109C7ECEBE5E2B0745B46A070238F7D05FC0DCA68F8BAD03') {
+                if ((Get-ModuleHash -Path $userModulePath\HelloWorld) -ne '722377BA6AE291B6109C7ECEBE5E2B0745B46A070238F7D05FC0DCA68F8BAD03') {
                     throw 'Module HelloWorld was not reinstalled to fix the hash.'
                 }
                 Drop-Module -Module HelloWorld

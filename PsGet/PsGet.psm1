@@ -412,7 +412,7 @@ function Update-Module {
         if ($All) {
             Install-Module -Module PSGet -Force -DoNotImport
 
-            Get-PsGetModuleInfo -ModuleName '*' | Where-Object {
+            Get-ModuleInfo -ModuleName '*' | Where-Object {
                     if ($_.Id -ne 'PSGet') {
                         Get-Module -Name:($_.ModuleName) -ListAvailable
                     }
@@ -444,13 +444,13 @@ function Update-Module {
         http://psget.net
 
     .EXAMPLE
-        Get-PsGetModuleInfo PoshCo*
+        Get-ModuleInfo PoshCo*
 
         Description
         -----------
         Retrieves information about all registerd modules that starts with PoshCo.
 #>
-function Get-PsGetModuleInfo {
+function Get-ModuleInfo {
     [CmdletBinding()]
     param (
         [Parameter(Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true, Mandatory=$true)]
@@ -571,7 +571,7 @@ function Get-PsGetModuleInfo {
         Path to the module directory
 
     .EXAMPLE
-        Get-PsGetModuleHash $global:UserModuleBasePath\PsGet
+        Get-ModuleHash $global:UserModuleBasePath\PsGet
 
         Description
         -----------
@@ -583,7 +583,7 @@ function Get-PsGetModuleInfo {
     .LINK
         http://psget.net
 #>
-function Get-PsGetModuleHash {
+function Get-ModuleHash {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)]
@@ -689,7 +689,7 @@ function Install-ModuleFromDirectory {
         }
 
         Write-Verbose "Module $Module will be installed from central repository"
-        $moduleData = Get-PsGetModuleInfo -ModuleName:$Module -DirectoryUrl:$DirectoryUrl | select -First 1
+        $moduleData = Get-ModuleInfo -ModuleName:$Module -DirectoryUrl:$DirectoryUrl | select -First 1
         if (-not $moduleData) {
             throw "Module $Module was not found in central repository"
         }
@@ -1596,7 +1596,7 @@ function Install-ModuleToDestination {
         if ($ModuleHash) {
             Write-Verbose 'Ensure that the hash of the module matches the specified hash'
 
-            $newModuleHash = Get-PsGetModuleHash -Path $ModuleFolderPath
+            $newModuleHash = Get-ModuleHash -Path $ModuleFolderPath
             Write-Verbose "Hash of module in '$ModuleFolderPath' is: $newModuleHash"
             if ($ModuleHash -ne $newModuleHash) {
                 throw 'Module contents do not match specified module hash. Ensure the expected hash is correct and the module source is trusted.'
@@ -1604,7 +1604,7 @@ function Install-ModuleToDestination {
 
             if ( Test-Path $targetFolderPath ) {
                 Write-Verbose 'Module already exists in destination path. Check if hash in destination is correct. If not replace with to be installed module.'
-                $destinationModuleHash = Get-PsGetModuleHash -Path $targetFolderPath
+                $destinationModuleHash = Get-ModuleHash -Path $targetFolderPath
                 if ($destinationModuleHash -ne $ModuleHash ) {
                     $Update = $true
                 }
@@ -1737,7 +1737,7 @@ function Test-ModuleInstalledAndImport {
     )
     process {
         if ($Update) {
-            #TODO: This implementation is more like the old -Force flag, because this will force an installation also if no installation in destination exists.
+            # TODO: This implementation is more like the old -Force flag, because this will force an installation also if no installation in destination exists.
             Write-Verbose "Ignoring if module with name '$ModuleName' is already installed because of update mode."
             return $false
         }
@@ -1776,7 +1776,7 @@ function Test-ModuleInstalledAndImport {
         }
 
         if ($ModuleHash) {
-            $installedModuleHash = Get-PsGetModuleHash -Path $installedModule.ModuleBase
+            $installedModuleHash = Get-ModuleHash -Path $installedModule.ModuleBase
             Write-Verbose "Hash of module in '$($installedModule.ModuleBase)' is: $InstalledModuleHash"
             if ($ModuleHash -ne $installedModuleHash) {
                 Write-Verbose "Expected '$ModuleHash' but calculated '$installedModuleHash'."
@@ -2130,7 +2130,7 @@ function TabExpansion {
     )
     process {
         if ($line -eq "Install-Module $lastword" -or $line -eq "inmo $lastword" -or $line -eq "ismo $lastword" -or $line -eq "upmo $lastword" -or $line -eq "Update-Module $lastword") {
-            Get-PsGetModuleInfo -ModuleName "$lastword*" | % { $_.Id } | sort -Unique
+            Get-ModuleInfo -ModuleName "$lastword*" | % { $_.Id } | sort -Unique
         }
         elseif ( Test-Path -Path Function:\$tabExpansionBackup ) {
             & $tabExpansionBackup $line $lastWord
@@ -2146,8 +2146,8 @@ Set-Alias -Name upmo -Value Update-Module
 
 Export-ModuleMember Install-Module
 Export-ModuleMember Update-Module
-Export-ModuleMember Get-PsGetModuleInfo
-Export-ModuleMember Get-PsGetModuleHash
+Export-ModuleMember Get-ModuleInfo
+Export-ModuleMember Get-ModuleHash
 Export-ModuleMember TabExpansion
 Export-ModuleMember -Alias inmo
 Export-ModuleMember -Alias ismo
