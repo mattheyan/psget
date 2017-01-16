@@ -97,6 +97,9 @@ Set-Variable -Name PSGET_PSD1 -Value 'PSD1' -Option Constant -Scope Script
     .PARAMETER PersistEnvironment
         If this switch is specified, the installation destination path will be added to either the User's PSModulePath environment variable or Machine's PSModulePath environment variable (if -Global specified)
 
+    .PARAMETER SuppressPathWarning
+        If this switch is specified, the warning about the module's destination not being on the User's PSModulePath environment variable will be supressed
+
     .PARAMETER InstallWithModuleName
         Allows to specify the name of the module and override the ModuleName normally used.
         NOTE: This parameter allows to install a module from the PsGet-Directory more than once and PsGet does not remember that this module is installed with a different name.
@@ -259,6 +262,9 @@ function Install-Module {
         [Switch] $PersistEnvironment,
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [Switch] $SuppressPathWarning,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [String] $InstallWithModuleName,
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
@@ -302,16 +308,16 @@ function Install-Module {
 
         switch($PSCmdlet.ParameterSetName) {
             CentralDirectory {
-                Install-ModuleFromDirectory -Module:$Module -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -DirectoryUrl:$DirectoryUrl -InstallWithModuleName:$InstallWithModuleName -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
+                Install-ModuleFromDirectory -Module:$Module -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -SuppressPathWarning:$SuppressPathWarning -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -DirectoryUrl:$DirectoryUrl -InstallWithModuleName:$InstallWithModuleName -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
             }
             Web {
-                Install-ModuleFromWeb -ModuleUrl:$ModuleUrl -ModuleName:$ModuleName -Type:$Type -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -InstallWithModuleName:$InstallWithModuleName -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
+                Install-ModuleFromWeb -ModuleUrl:$ModuleUrl -ModuleName:$ModuleName -Type:$Type -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -SuppressPathWarning:$SuppressPathWarning -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -InstallWithModuleName:$InstallWithModuleName -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
             }
             Local {
-                Install-ModuleFromLocal -ModulePath:$ModulePath -ModuleName:$ModuleName -Type:$Type -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -InstallWithModuleName:$InstallWithModuleName -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
+                Install-ModuleFromLocal -ModulePath:$ModulePath -ModuleName:$ModuleName -Type:$Type -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -SuppressPathWarning:$SuppressPathWarning -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -InstallWithModuleName:$InstallWithModuleName -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
             }
             NuGet {
-                Install-ModuleFromNuGet -NuGetPackageId:$NuGetPackageId -PackageVersion:$PackageVersion -NugetSource:$NugetSource -PreRelease:$PreRelease -PreReleaseTag:$PreReleaseTag -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -InstallWithModuleName:$InstallWithModuleName -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
+                Install-ModuleFromNuGet -NuGetPackageId:$NuGetPackageId -PackageVersion:$PackageVersion -NugetSource:$NugetSource -PreRelease:$PreRelease -PreReleaseTag:$PreReleaseTag -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -SuppressPathWarning:$SuppressPathWarning -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -InstallWithModuleName:$InstallWithModuleName -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
             }
             default {
                 throw "Unknown ParameterSetName '$($PSCmdlet.ParameterSetName)'"
@@ -632,6 +638,9 @@ function Get-ModuleHash {
     .PARAMETER PersistEnvironment
         If this switch is specified, the installation destination path will be added to either the User's PSModulePath environment variable or Machine's PSModulePath environment variable (if -Global specified)
 
+    .PARAMETER SuppressPathWarning
+        If this switch is specified, the warning about the module's destination not being on the User's PSModulePath environment variable will be supressed
+
     .PARAMETER InstallWithModuleName
         Allows to specify the name of the module and override the ModuleName normally used.
         NOTE: This parameter allows to install a module from the PsGet-Directory more than once and PsGet does not remember that this module is installed with a different name.
@@ -672,6 +681,9 @@ function Install-ModuleFromDirectory {
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [Switch] $PersistEnvironment,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [Switch] $SuppressPathWarning,
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [String] $InstallWithModuleName,
@@ -717,7 +729,7 @@ function Install-ModuleFromDirectory {
         }
 
         $result = Invoke-DownloadModuleFromWeb -DownloadUrl:$moduleData.DownloadUrl -ModuleName:$moduleData.ModuleName -Type:$moduleData.Type -Verb:$moduleData.Verb
-        Install-ModuleToDestination -ModuleName:$result.ModuleName -InstallWithModuleName:$InstallWithModuleName -ModuleFolderPath:$result.ModuleFolderPath -TempFolderPath:$result.TempFolderPath -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
+        Install-ModuleToDestination -ModuleName:$result.ModuleName -InstallWithModuleName:$InstallWithModuleName -ModuleFolderPath:$result.ModuleFolderPath -TempFolderPath:$result.TempFolderPath -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -SuppressPathWarning:$SuppressPathWarning -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
     }
 }
 
@@ -756,6 +768,9 @@ function Install-ModuleFromDirectory {
 
     .PARAMETER PersistEnvironment
         If this switch is specified, the installation destination path will be added to either the User's PSModulePath environment variable or Machine's PSModulePath environment variable (if -Global specified)
+
+    .PARAMETER SuppressPathWarning
+        If this switch is specified, the warning about the module's destination not being on the User's PSModulePath environment variable will be supressed
 
     .PARAMETER InstallWithModuleName
         Allows to specify the name of the module and override the ModuleName normally used.
@@ -803,6 +818,9 @@ function Install-ModuleFromWeb {
         [Switch] $PersistEnvironment,
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [Switch] $SuppressPathWarning,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [String] $InstallWithModuleName,
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
@@ -826,7 +844,7 @@ function Install-ModuleFromWeb {
             $PostInstallHook = 'Install.ps1'
         }
 
-        Install-ModuleToDestination -ModuleName:$result.ModuleName -InstallWithModuleName:$InstallWithModuleName -ModuleFolderPath:$result.ModuleFolderPath -TempFolderPath:$result.TempFolderPath -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
+        Install-ModuleToDestination -ModuleName:$result.ModuleName -InstallWithModuleName:$InstallWithModuleName -ModuleFolderPath:$result.ModuleFolderPath -TempFolderPath:$result.TempFolderPath -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -SuppressPathWarning:$SuppressPathWarning -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
     }
 }
 
@@ -865,6 +883,9 @@ function Install-ModuleFromWeb {
 
     .PARAMETER PersistEnvironment
         If this switch is specified, the installation destination path will be added to either the User's PSModulePath environment variable or Machine's PSModulePath environment variable (if -Global specified)
+
+    .PARAMETER SuppressPathWarning
+        If this switch is specified, the warning about the module's destination not being on the User's PSModulePath environment variable will be supressed
 
     .PARAMETER InstallWithModuleName
         Allows to specify the name of the module and override the ModuleName normally used.
@@ -910,6 +931,9 @@ function Install-ModuleFromLocal {
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [Switch] $PersistEnvironment,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [Switch] $SuppressPathWarning,
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
         [String] $InstallWithModuleName,
@@ -967,7 +991,7 @@ function Install-ModuleFromLocal {
             $PostInstallHook = 'Install.ps1'
         }
 
-        Install-ModuleToDestination -ModuleName:$foundResult.ModuleName -InstallWithModuleName:$InstallWithModuleName -ModuleFolderPath:$foundResult.ModuleFolderPath -TempFolderPath:$tempFolderPath -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
+        Install-ModuleToDestination -ModuleName:$foundResult.ModuleName -InstallWithModuleName:$InstallWithModuleName -ModuleFolderPath:$foundResult.ModuleFolderPath -TempFolderPath:$tempFolderPath -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -SuppressPathWarning:$SuppressPathWarning -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
     }
 }
 
@@ -1012,6 +1036,9 @@ function Install-ModuleFromLocal {
 
     .PARAMETER PersistEnvironment
         If this switch is specified, the installation destination path will be added to either the User's PSModulePath environment variable or Machine's PSModulePath environment variable (if -Global specified)
+
+    .PARAMETER SuppressPathWarning
+        If this switch is specified, the warning about the module's destination not being on the User's PSModulePath environment variable will be supressed
 
     .PARAMETER InstallWithModuleName
         Allows to specify the name of the module and override the ModuleName normally used.
@@ -1066,6 +1093,9 @@ function Install-ModuleFromNuGet {
         [Switch] $PersistEnvironment,
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [Switch] $SuppressPathWarning,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true)]
         [String] $InstallWithModuleName,
 
         [Parameter(ValueFromPipelineByPropertyName=$true)]
@@ -1088,7 +1118,7 @@ function Install-ModuleFromNuGet {
 
         try {
             $result = Invoke-DownloadNugetPackage -NuGetPackageId $NuGetPackageId -PackageVersion $PackageVersion -Source $NugetSource -PreRelease:$PreRelease -PreReleaseTag $PreReleaseTag
-            Install-ModuleToDestination -ModuleName:$result.ModuleName -InstallWithModuleName:$InstallWithModuleName -ModuleFolderPath:$result.ModuleFolderPath -TempFolderPath:$result.TempFolderPath -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
+            Install-ModuleToDestination -ModuleName:$result.ModuleName -InstallWithModuleName:$InstallWithModuleName -ModuleFolderPath:$result.ModuleFolderPath -TempFolderPath:$result.TempFolderPath -Destination:$Destination -ModuleHash:$ModuleHash -Global:$Global -PersistEnvironment:$PersistEnvironment -SuppressPathWarning:$SuppressPathWarning -DoNotImport:$DoNotImport -AddToProfile:$AddToProfile -Update:$Update -DoNotPostInstall:$DoNotPostInstall -PostInstallHook:$PostInstallHook
         }
         catch {
             Write-Error $_.Exception.Message
@@ -1519,6 +1549,9 @@ function Invoke-DownloadModuleFromWeb {
     .PARAMETER PersistEnvironment
         Defines if the PSModulePath changes should be persistent.
 
+    .PARAMETER SuppressPathWarning
+        Defines if the PSModulePath warning should be shown.
+
     .PARAMETER DoNotImport
         Defines if the installed module should be imported.
 
@@ -1556,6 +1589,8 @@ function Install-ModuleToDestination {
         [Switch] $Global,
 
         [Switch] $PersistEnvironment,
+
+        [Switch] $SuppressPathWarning,
 
         [Switch] $DoNotImport,
 
