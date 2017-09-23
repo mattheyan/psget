@@ -2175,16 +2175,23 @@ function TabExpansion {
 #endregion
 
 #region Module Interface
+
+<#
 Set-Alias -Name inmo -Value Install-Module #Obsolete
 Set-Alias -Name ismo -Value Install-Module
 Set-Alias -Name upmo -Value Update-Module
+#>
 
 Export-ModuleMember Install-Module
 Export-ModuleMember Update-Module
 Export-ModuleMember Get-ModuleInfo
 Export-ModuleMember Get-ModuleHash
 Export-ModuleMember TabExpansion
+
+<#
 Export-ModuleMember -Alias inmo
 Export-ModuleMember -Alias ismo
 Export-ModuleMember -Alias upmo
+#>
+
 #endregion
