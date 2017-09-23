@@ -1,12 +1,12 @@
 @{  
 # These modules will be processed when the module manifest is loaded.  This is only supported in PS 3.0
-#RootModule = "PsGet.psm1"
+RootModule = "PsGet.psm1"
 
 #This is required for PS 2.0
-ModuleToProcess = "PsGet.psm1"
+# ModuleToProcess = "PsGet.psm1"
 
 # The version of this module.  
-ModuleVersion = '1.0'  
+ModuleVersion = '1.1.0'  
 
 # This GUID is used to uniquely identify this module.  
 GUID = '638FF397-8108-4B94-981A-D9BDAB4774B2'  
@@ -60,7 +60,7 @@ ProcessorArchitecture = 'None'
 NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = '*'
+FunctionsToExport = 'Install-Module','Update-Module','Get-ModuleInfo','Get-ModuleHash','TabExpansion'
 
 # Cmdlets to export from this module
 CmdletsToExport = '*'
